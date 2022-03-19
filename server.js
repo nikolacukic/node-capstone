@@ -15,9 +15,9 @@ app.get('/', (_, res) => {
 app.get('/api/users', async (_, response) => {
   try {
     const records = await dbAdapter.getAllUsers();
-    response.status(200).end(JSON.stringify(records));
+    response.status(200).json(records);
   } catch (error) {
-    response.status(400).end(JSON.stringify(error));
+    response.status(400).json(error);
   }
 });
 
@@ -28,21 +28,19 @@ app.post('/api/users', async (request, response) => {
     try {
       const newUser = await dbAdapter.insertUser(username);
       if (newUser) {
-        response.status(201).end(JSON.stringify(newUser));
+        response.status(201).json(newUser);
       } else {
-        response.status(400).end(
-          JSON.stringify({
-            error: `User with the username ${username} already exists!`,
-          })
+        response.status(400).json(
+          { error: `User with the username ${username} already exists!` }
         );
       }
     } catch (error) {
-      response.status(400).end(JSON.stringify(error));
+      response.status(400).json(error);
     }
   } else {
     response
       .status(400)
-      .end(JSON.stringify({ error: 'Username not provided' }));
+      .json({ error: 'Username not provided' });
   }
 });
 
