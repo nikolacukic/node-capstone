@@ -129,10 +129,24 @@ const createDB = async () => {
 };
 
 /**
- * Run this function to populate the users table with dummy data
+ * Run this function to populate the user table with dummy data
  */
 const populateUsers = async () => {
-  insertUser('user1');
-  insertUser('user2');
-  insertUser('user3');
+  await insertUser('user1');
+  await insertUser('user2');
+  await insertUser('user3');
+};
+
+/**
+ * Run this function to populate the exercise table with dummy data
+ */
+ const populateExercises = async () => {
+  await insertExercise(1, 'Shoulder press', 10, '2022-03-13');
+  await insertExercise(1, 'Leg press', 20, '2022-02-11');
+  await insertExercise(1, 'Pushups', 13, '2022-02-22');
+
+  await insertExercise(2, 'Running', 45, '2021-12-23');
+  await insertExercise(2, 'Pushups', 10, '2020-09-25');
+
+  await insertExercise(3, 'Pullups', 25, '2022-03-20');
 };
