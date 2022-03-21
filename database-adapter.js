@@ -6,7 +6,7 @@ const fs = require('fs');
 /**
  * Opens the database and provides it back to the caller
  *
- * @returns {Promise<Database>} Promise that resolves with database instance
+ * @return {Promise<Database>} Promise that resolves with database instance
  */
 const getDb = () => {
   return Database.open(getAbsolutePath(__dirname, paths.DB_PATH));
@@ -15,8 +15,7 @@ const getDb = () => {
 /**
  * Retrieves all user records from the database
  *
- * @return {Array<Object>|boolean} Array of users, or false if no
- * records were found
+ * @return {Array<Object>} Array of found users
  */
 const getAllUsers = async () => {
   const db = await getDb();
