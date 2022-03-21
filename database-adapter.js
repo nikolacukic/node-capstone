@@ -1,7 +1,7 @@
 const { paths, queries } = require('./const');
-const { getAbsolutePath } = require('./utils');
 const Database = require('sqlite-async');
 const fs = require('fs');
+const { join } = require('path');
 
 /**
  * Opens the database and provides it back to the caller
@@ -9,7 +9,7 @@ const fs = require('fs');
  * @return {Promise<Database>} Promise that resolves with database instance
  */
 const getDb = () => {
-  return Database.open(getAbsolutePath(__dirname, paths.DB_PATH));
+  return Database.open(join(__dirname, paths.DB_PATH));
 };
 
 /**
