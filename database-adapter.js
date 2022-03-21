@@ -105,35 +105,72 @@ const insertExercise = async (userId, description, duration, date) => {
 };
 
 /**
- * Gets all exercises for a certain user
+ * Gets user info including exercises
  * 
- * @param {Number} userId - Id of the user whose exercises should be fetched
- * @return {Object} User object that contains a logs array with all the users
- * exercises
+ * @param {Number} userId - Id of the user whose logs should be rertrieved
+ * @return {Object} User object with logs array containing their exercises
  */
-const getExercisesForUser = async (userId) => {
-  const db = await getDb();
-
+const getUserLogs = async (userId) => {
   const user = await getUserById(userId);
 
   if (user) {
     try {
-      const logs = await db.all(queries.GET_EXERCISES_BY_USER_ID_QUERY, userId);
-      db.close();
-      return { _id: userId, username: user.username, logs };
+      const logs = await getExercisesForUser(userId);
+      const count = await getExerciseCountForUser(userId);
+      return { _id: userId, username: user.username, logs, count };
     } catch (error) {
-      db.close();
       throw error;
     }
-    
   } else {
-    db.close();
     throw { error: 'The user with the provided id does not exist!' };
   }
 };
 
+/**
+ * Gets all exercises for a certain user
+ * 
+ * @param {Number} userId - Id of the user whose exercises should be fetched
+ * @return {Array<Object>} Array of exercises for provided user
+ */
+const getExercisesForUser = async (userId) => {
+  const db = await getDb();
 
-module.exports = { getAllUsers, insertUser, insertExercise, getExercisesForUser };
+  try {
+    const logs = await db.all(queries.GET_EXERCISES_BY_USER_ID_QUERY, userId);
+    db.close();
+    return logs;
+  } catch (error) {
+    db.close();
+    throw error;
+  }
+};
+
+/**
+ * Gets the total number of exercises for a given user
+ * 
+ * @param {Number} userId - Id of the user whose exercises should be fetched
+ * @return {Number} Total number of exerecises for the given user
+ */
+ const getExerciseCountForUser = async (userId) => {
+  const db = await getDb();
+
+  try {
+    const result = await db.get(queries.GET_TOTAL_USER_EXERCISE_COUNT_QUERY, userId);
+    db.close();
+    return result.count;
+  } catch (error) {
+    db.close();
+    throw error;
+  }
+};
+
+
+module.exports = { 
+  getAllUsers,
+  insertUser,
+  insertExercise,
+  getUserLogs
+};
 
 /*
   Everything below this line is related to DB setup.

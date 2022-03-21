@@ -75,7 +75,7 @@ app.get('/api/users/:_id/logs', async (request, response) => {
   const userId = request.params._id;
 
   try {
-    const logs = await dbAdapter.getExercisesForUser(userId);
+    const logs = await dbAdapter.getUserLogs(userId);
 
     response.status(200).json(logs);
   } catch (error) {
