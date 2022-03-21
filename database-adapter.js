@@ -40,14 +40,73 @@ const insertUser = async (username) => {
 
   try {
     const result = await db.run(queries.INSERT_USER_QUERY, username);
+    db.close();
     return { username, _id: result.lastID };
   } catch (error) {
+    db.close();
     return null;
   }
 };
 
+/**
+ * Retrieves the user with the provided id from the database
+ * 
+ * @param {Number} userId - The user's id
+ * @return {Object|null} The user object, or null if no
+ * records were found with the provided id
+ */
+const getUserById = async (userId) => {
+  const db = await getDb();
 
-module.exports = { getAllUsers, insertUser };
+  try {
+    const user = await db.get(queries.GET_USER_BY_ID_QUERY, userId);
+    db.close();
+    return user;
+  } catch (error) {
+    db.close();
+    return null;
+  }
+};
+
+/**
+ * Inserts a new exercise record into the database
+ * 
+ * @param {Number} userId - The id of the user for which the exercise is added
+ * @param {String} description - Text containing the description of the exercise
+ * @param {Number} duration - The duration of the exercise, in minutes
+ * @param {String} date - A string representation of the date of the exercise
+ * @return {Object} User object with the exercise fields added
+ */
+const insertExercise = async (userId, description, duration, date) => {
+  const db = await getDb();
+
+  const user = await getUserById(userId);
+
+  if (user) {
+    try {
+      const result = await db.run(queries.INSERT_EXERCISE_QUERY, [description, duration, date, userId]);
+      db.close();
+      if (result.lastID) {
+        return { 
+          _id: userId,
+          username: user.username,
+          description,
+          duration,
+          date 
+        };
+      }
+    } catch (error) {
+      db.close();
+      throw error;
+    }
+  } else {
+    db.close();
+    throw { error: 'The user with the provided id does not exist!' };
+  }
+};
+
+
+module.exports = { getAllUsers, insertUser, insertExercise };
 
 /*
   Everything below this line is related to DB setup.

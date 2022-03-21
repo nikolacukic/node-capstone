@@ -44,6 +44,33 @@ app.post('/api/users', async (request, response) => {
   }
 });
 
+
+app.post('/api/users/:_id/exercises', async (request, response) => {
+  const userId = request.params._id;
+  const { description, duration, date } = request.body;
+
+  if (!description || !duration) {
+    response.status(400).json({error: 'Please provide exercise description and duration'});
+    return;
+  }
+
+  const creationDate = date ? Date.parse(date) : Date.now();
+
+  if(isNaN(creationDate)) {
+    response.status(400).json({error: 'Please provide the date in YYYY-MM-DD (ISO) format'});
+    return;
+  } else {
+    try {
+      const dateString = new Date(creationDate).toISOString().split('T')[0];
+      const newExercise = await dbAdapter.insertExercise(userId, description, duration, dateString);
+
+      response.status(201).json(newExercise);
+    } catch (error) {
+      response.status(400).json(error);
+    }
+  }
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
