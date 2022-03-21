@@ -71,6 +71,18 @@ app.post('/api/users/:_id/exercises', async (request, response) => {
   }
 });
 
+app.get('/api/users/:_id/logs', async (request, response) => {
+  const userId = request.params._id;
+
+  try {
+    const logs = await dbAdapter.getExercisesForUser(userId);
+
+    response.status(200).json(logs);
+  } catch (error) {
+    response.status(400).json(error);
+  }
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });

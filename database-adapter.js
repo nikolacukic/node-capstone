@@ -104,8 +104,36 @@ const insertExercise = async (userId, description, duration, date) => {
   }
 };
 
+/**
+ * Gets all exercises for a certain user
+ * 
+ * @param {Number} userId - Id of the user whose exercises should be fetched
+ * @return {Object} User object that contains a logs array with all the users
+ * exercises
+ */
+const getExercisesForUser = async (userId) => {
+  const db = await getDb();
 
-module.exports = { getAllUsers, insertUser, insertExercise };
+  const user = await getUserById(userId);
+
+  if (user) {
+    try {
+      const logs = await db.all(queries.GET_EXERCISES_BY_USER_ID_QUERY, userId);
+      db.close();
+      return { _id: userId, username: user.username, logs };
+    } catch (error) {
+      db.close();
+      throw error;
+    }
+    
+  } else {
+    db.close();
+    throw { error: 'The user with the provided id does not exist!' };
+  }
+};
+
+
+module.exports = { getAllUsers, insertUser, insertExercise, getExercisesForUser };
 
 /*
   Everything below this line is related to DB setup.
