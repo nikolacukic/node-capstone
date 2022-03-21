@@ -12,6 +12,6 @@ CREATE TABLE IF NOT EXISTS Exercise (
     date VARCHAR(15),
     user INTEGER,
 
-    FOREIGN KEY (user) REFERENCES User(id)
+    FOREIGN KEY (user) REFERENCES User(_id)
 );
 	
