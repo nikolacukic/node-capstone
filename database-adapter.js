@@ -25,7 +25,7 @@ const getAllUsers = async () => {
 
   db.close();
 
-  return result;;
+  return result;
 };
 
 /**
@@ -35,7 +35,7 @@ const getAllUsers = async () => {
  * @return {Object|null} The user object or null if the user already
  * exists
  */
-const insertUser = async username => {
+const insertUser = async (username) => {
   const db = await getDb();
 
   try {
