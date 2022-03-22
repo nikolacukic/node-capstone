@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 const bodyParser = require('body-parser');
 const dbAdapter = require('./database-adapter');
+const { parseValue } = require('./utils');
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -44,7 +45,6 @@ app.post('/api/users', async (request, response) => {
   }
 });
 
-
 app.post('/api/users/:_id/exercises', async (request, response) => {
   const userId = request.params._id;
   const { description, duration, date } = request.body;
@@ -73,9 +73,43 @@ app.post('/api/users/:_id/exercises', async (request, response) => {
 
 app.get('/api/users/:_id/logs', async (request, response) => {
   const userId = request.params._id;
+  const { from, to, limit } = request.query;
+  let fromDate;
+  let toDate;
+  let recordLimit;
 
   try {
-    const logs = await dbAdapter.getUserLogs(userId);
+    if (from) {
+      const fromDateInMillis = parseValue(
+        from,
+        Date.parse,
+        `The parameter 'from' must be provided in the format YYYY-MM-DD. You provided '${from}'`
+      );
+      fromDate = new Date(fromDateInMillis).toISOString();
+    }
+    
+    if (to) {
+      const toDateInMillis = parseValue(
+        to,
+        Date.parse,
+        `The parameter 'to' must be provided in the format YYYY-MM-DD. You provided '${to}'`
+      );
+      toDate = new Date(toDateInMillis).toISOString();
+    }
+    
+    if (limit) {
+      recordLimit = parseValue(
+        limit,
+        (value) => parseInt(value, 10),
+        `The parameter 'limit' must be a whole number. You provided '${limit}'`
+      );
+    }
+  
+    if (fromDate && toDate && fromDate > toDate) {
+      throw { error: `'from' must be a date before 'to'!` };
+    }
+
+    const logs = await dbAdapter.getUserLogs(userId, fromDate, toDate, recordLimit);
 
     response.status(200).json(logs);
   } catch (error) {

@@ -1,4 +1,4 @@
-const { paths, queries } = require('./const');
+const { paths, queries, filters } = require('./const');
 const Database = require('sqlite-async');
 const fs = require('fs');
 const { join } = require('path');
@@ -110,12 +110,12 @@ const insertExercise = async (userId, description, duration, date) => {
  * @param {Number} userId - Id of the user whose logs should be rertrieved
  * @return {Object} User object with logs array containing their exercises
  */
-const getUserLogs = async (userId) => {
+const getUserLogs = async (userId, ...params) => {
   const user = await getUserById(userId);
 
   if (user) {
     try {
-      const logs = await getExercisesForUser(userId);
+      const logs = await getExercisesForUser(userId, ...params);
       const count = await getExerciseCountForUser(userId);
       return { _id: userId, username: user.username, logs, count };
     } catch (error) {
@@ -130,13 +130,29 @@ const getUserLogs = async (userId) => {
  * Gets all exercises for a certain user
  * 
  * @param {Number} userId - Id of the user whose exercises should be fetched
+ * @param {String} from - String representation of date from which to retrieve
+ * exercises
+ * @param {String} to - String representation of date up to which to retrieve
+ * exercises
+ * @param {Number} limit - Upper limit to how many records to retrieve
  * @return {Array<Object>} Array of exercises for provided user
  */
-const getExercisesForUser = async (userId) => {
+const getExercisesForUser = async (userId, from, to, limit) => {
   const db = await getDb();
 
+  let query = queries.GET_EXERCISES_BY_USER_ID_QUERY;
+
+  query = from ? query.concat(filters.FILTER_FROM) : query;
+  query = to ? query.concat(filters.FILTER_TO) : query;
+  query = limit ? query.concat(filters.FILTER_LIMIT) : query;
+
   try {
-    const logs = await db.all(queries.GET_EXERCISES_BY_USER_ID_QUERY, userId);
+    const logs = await db.all(query, {
+      $userId: userId,
+      $from: from,
+      $to: to,
+      $limit: limit
+    });
     db.close();
     return logs;
   } catch (error) {
