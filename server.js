@@ -57,7 +57,7 @@ app.post('/api/users/:_id/exercises', async (request, response) => {
   const creationDate = date ? Date.parse(date) : Date.now();
 
   if(isNaN(creationDate)) {
-    response.status(400).json({error: 'Please provide the date in YYYY-MM-DD (ISO) format'});
+    response.status(400).json({error: 'Please provide a valid date in YYYY-MM-DD (ISO) format'});
     return;
   } else {
     try {
