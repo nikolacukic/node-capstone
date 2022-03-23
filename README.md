@@ -4,7 +4,8 @@
 # About
 
 This is a capstone project for the course "Node.js for front-end developers"
-It covers the some basic concepts in node.js like:
+
+It covers some basic concepts in node.js like:
 - Interacting with a lightweight database like [sqlite](https://github.com/mapbox/node-sqlite3)
 - Creating a simple API using [express.js](https://expressjs.com/)
 
