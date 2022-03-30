@@ -42,6 +42,14 @@ const insertExercise = async (userId, body) => {
     throw { code: 400, message: 'Please provide exercise description and duration' };
   }
 
+  if (typeof duration !== 'number') {
+    throw { code: 400, message: `Exercise duration should be a whole number. You provided ${duration}` };
+  }
+
+  if (typeof date !== 'string') {
+    throw { code: 400, message: 'Date should be a string in YYYY-MM-DD (ISO) format' };
+  }
+
   const creationDate = date ? Date.parse(date) : Date.now();
 
   if(isNaN(creationDate)) {
