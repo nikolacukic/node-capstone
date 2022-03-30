@@ -1,4 +1,6 @@
-const { paths, queries, filters } = require('./const');
+const { paths } = require('./const');
+const userAdapter = require('./database-adapter/user');
+const exerciseAdapter = require('./database-adapter/exercise');
 const Database = require('sqlite-async');
 const fs = require('fs');
 const { join } = require('path');
@@ -20,11 +22,7 @@ const getDb = () => {
 const getAllUsers = async () => {
   const db = await getDb();
 
-  const result = await db.all(queries.GET_ALL_USERS_QUERY);
-
-  db.close();
-
-  return result;
+  return await userAdapter.getAll(db);
 };
 
 /**
@@ -36,14 +34,7 @@ const getAllUsers = async () => {
 const insertUser = async (username) => {
   const db = await getDb();
 
-  try {
-    const result = await db.run(queries.INSERT_USER_QUERY, username);
-    db.close();
-    return { username, _id: result.lastID };
-  } catch (error) {
-    db.close();
-    throw { code: 400, message: `User with the username ${username} already exists!` };
-  }
+  return await userAdapter.insert(db, username);
 };
 
 /**
@@ -55,15 +46,7 @@ const insertUser = async (username) => {
 const getUserById = async (userId) => {
   const db = await getDb();
 
-  const user = await db.get(queries.GET_USER_BY_ID_QUERY, userId);
-
-  if (!user) {
-    throw { code: 404, message: 'The user with the provided id does not exist!' };
-  }
-
-  db.close();
-  return user;
-  
+  return await userAdapter.getById(db, userId);
 };
 
 /**
@@ -78,24 +61,9 @@ const getUserById = async (userId) => {
 const insertExercise = async (userId, description, duration, date) => {
   const db = await getDb();
 
-    try {
-      const user = await getUserById(userId);
+  const user = await getUserById(userId);
 
-      const result = await db.run(queries.INSERT_EXERCISE_QUERY, [description, duration, date, userId]);
-      db.close();
-      if (result.lastID) {
-        return { 
-          _id: userId,
-          username: user.username,
-          description,
-          duration,
-          date 
-        };
-      }
-    } catch (error) {
-      db.close();
-      throw error;
-    }
+  return await exerciseAdapter.insert(db, user, description, duration, date);
 };
 
 /**
@@ -128,26 +96,7 @@ const getUserLogs = async (userId, ...params) => {
  */
 const getExercisesForUser = async (userId, from, to, limit) => {
   const db = await getDb();
-
-  let query = queries.GET_EXERCISES_BY_USER_ID_QUERY;
-
-  query = from ? query.concat(filters.FILTER_FROM) : query;
-  query = to ? query.concat(filters.FILTER_TO) : query;
-  query = limit ? query.concat(filters.FILTER_LIMIT) : query;
-
-  try {
-    const logs = await db.all(query, {
-      $userId: userId,
-      $from: from,
-      $to: to,
-      $limit: limit
-    });
-    db.close();
-    return logs;
-  } catch (error) {
-    db.close();
-    throw error;
-  }
+  return await exerciseAdapter.getAll(db, userId, from, to, limit);
 };
 
 /**
@@ -160,24 +109,7 @@ const getExercisesForUser = async (userId, from, to, limit) => {
  */
  const getExerciseCountForUser = async (userId, from, to) => {
   const db = await getDb();
-
-  let query = queries.GET_TOTAL_USER_EXERCISE_COUNT_QUERY;
-
-  query = from ? query.concat(filters.FILTER_FROM) : query;
-  query = to ? query.concat(filters.FILTER_TO) : query;
-
-  try {
-    const result = await db.get(query, {
-      $userId: userId,
-      $from: from,
-      $to: to
-    });
-    db.close();
-    return result.count;
-  } catch (error) {
-    db.close();
-    throw error;
-  }
+  return await exerciseAdapter.getCount(db, userId, from, to);
 };
 
 
