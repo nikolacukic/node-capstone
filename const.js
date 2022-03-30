@@ -7,7 +7,7 @@ GET_USER_BY_ID_QUERY = 'SELECT * FROM user WHERE _id = ?';
 
 INSERT_EXERCISE_QUERY = 'INSERT INTO exercise (description, duration, date, user) VALUES (?, ?, ?, ?)';
 GET_EXERCISES_BY_USER_ID_QUERY = 'SELECT description, duration, date FROM exercise WHERE user = $userId';
-GET_TOTAL_USER_EXERCISE_COUNT_QUERY = 'SELECT COUNT(*) as count FROM exercise WHERE user = ?';
+GET_TOTAL_USER_EXERCISE_COUNT_QUERY = 'SELECT COUNT(*) as count FROM exercise WHERE user = $userId';
 
 FILTER_FROM = ' AND date > $from';
 FILTER_TO = ' AND date < $to';

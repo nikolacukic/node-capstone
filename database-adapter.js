@@ -116,7 +116,7 @@ const getUserLogs = async (userId, ...params) => {
   if (user) {
     try {
       const logs = await getExercisesForUser(userId, ...params);
-      const count = await getExerciseCountForUser(userId);
+      const count = await getExerciseCountForUser(userId, ...params);
       return { _id: userId, username: user.username, logs, count };
     } catch (error) {
       throw error;
@@ -165,13 +165,24 @@ const getExercisesForUser = async (userId, from, to, limit) => {
  * Gets the total number of exercises for a given user
  * 
  * @param {Number} userId - Id of the user whose exercises should be fetched
+ * @param {String} from - String representation of date from which to calculate
+ * @param {String} to - String representation of date up to which to calculate
  * @return {Number} Total number of exerecises for the given user
  */
- const getExerciseCountForUser = async (userId) => {
+ const getExerciseCountForUser = async (userId, from, to) => {
   const db = await getDb();
 
+  let query = queries.GET_TOTAL_USER_EXERCISE_COUNT_QUERY;
+
+  query = from ? query.concat(filters.FILTER_FROM) : query;
+  query = to ? query.concat(filters.FILTER_TO) : query;
+
   try {
-    const result = await db.get(queries.GET_TOTAL_USER_EXERCISE_COUNT_QUERY, userId);
+    const result = await db.get(query, {
+      $userId: userId,
+      $from: from,
+      $to: to
+    });
     db.close();
     return result.count;
   } catch (error) {
