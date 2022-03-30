@@ -3,8 +3,7 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const bodyParser = require('body-parser');
-const dbAdapter = require('./database-adapter');
-const { parseValue } = require('./utils');
+const controller = require('./controller');
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -15,7 +14,7 @@ app.get('/', (_, res) => {
 
 app.get('/api/users', async (_, response) => {
   try {
-    const records = await dbAdapter.getAllUsers();
+    const records = await controller.getAllUsers();
     response.status(200).json(records);
   } catch (error) {
     response.status(400).json(error);
@@ -23,97 +22,29 @@ app.get('/api/users', async (_, response) => {
 });
 
 app.post('/api/users', async (request, response) => {
-  const username = request.body.username;
-
-  if (username) {
-    try {
-      const newUser = await dbAdapter.insertUser(username);
-      if (newUser) {
-        response.status(201).json(newUser);
-      } else {
-        response.status(400).json(
-          { error: `User with the username ${username} already exists!` }
-        );
-      }
-    } catch (error) {
-      response.status(400).json(error);
-    }
-  } else {
-    response
-      .status(400)
-      .json({ error: 'Username not provided' });
+  try {
+    const newUser = await controller.insertUser(request.body.username);
+    response.status(201).json(newUser);
+  } catch (error) {
+    response.status(error.code ?? 400).json({ error : error.message ?? error});
   }
 });
 
 app.post('/api/users/:_id/exercises', async (request, response) => {
-  const userId = request.params._id;
-  const { description, duration, date } = request.body;
-
-  if (!description || !duration) {
-    response.status(400).json({error: 'Please provide exercise description and duration'});
-    return;
-  }
-
-  const creationDate = date ? Date.parse(date) : Date.now();
-
-  if(isNaN(creationDate)) {
-    response.status(400).json({error: 'Please provide a valid date in YYYY-MM-DD (ISO) format'});
-    return;
-  } else {
-    try {
-      const dateString = new Date(creationDate).toISOString().split('T')[0];
-      const newExercise = await dbAdapter.insertExercise(userId, description, duration, dateString);
-
-      response.status(201).json(newExercise);
-    } catch (error) {
-      response.status(400).json(error);
-    }
+  try {
+    const newExercise = await controller.insertExercise(request.params._id, request.body);
+    response.status(201).json(newExercise);
+  } catch (error) {
+    response.status(error.code ?? 400).json({ error : error.message ?? error});
   }
 });
 
 app.get('/api/users/:_id/logs', async (request, response) => {
-  const userId = request.params._id;
-  const { from, to, limit } = request.query;
-  let fromDate;
-  let toDate;
-  let recordLimit;
-
   try {
-    if (from) {
-      const fromDateInMillis = parseValue(
-        from,
-        Date.parse,
-        `The parameter 'from' must be provided in the format YYYY-MM-DD. You provided '${from}'`
-      );
-      fromDate = new Date(fromDateInMillis).toISOString();
-    }
-    
-    if (to) {
-      const toDateInMillis = parseValue(
-        to,
-        Date.parse,
-        `The parameter 'to' must be provided in the format YYYY-MM-DD. You provided '${to}'`
-      );
-      toDate = new Date(toDateInMillis).toISOString();
-    }
-    
-    if (limit) {
-      recordLimit = parseValue(
-        limit,
-        (value) => parseInt(value, 10),
-        `The parameter 'limit' must be a whole number. You provided '${limit}'`
-      );
-    }
-  
-    if (fromDate && toDate && fromDate > toDate) {
-      throw { error: `'from' must be a date before 'to'!` };
-    }
-
-    const logs = await dbAdapter.getUserLogs(userId, fromDate, toDate, recordLimit);
-
+    const logs = await controller.getUserLogs(request.params._id, request.query);
     response.status(200).json(logs);
   } catch (error) {
-    response.status(400).json(error);
+    response.status(error.code ?? 400).json({ error : error.message ?? error});
   }
 });
 

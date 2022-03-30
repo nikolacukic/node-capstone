@@ -10,7 +10,7 @@
 const parseValue = (value, parsingFn, message) => {
   const parsedValue = parsingFn(value);
   if (isNaN(parsedValue)) {
-    throw { error: message };
+    throw { code: 400, message };
   }
   return parsedValue;
 };

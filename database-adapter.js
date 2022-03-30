@@ -31,8 +31,7 @@ const getAllUsers = async () => {
  * Create a db record for the user with the provided username
  *
  * @param {String} username - The provided username
- * @return {Object|null} The user object or null if the user already
- * exists
+ * @return {Object} The user object
  */
 const insertUser = async (username) => {
   const db = await getDb();
@@ -43,7 +42,7 @@ const insertUser = async (username) => {
     return { username, _id: result.lastID };
   } catch (error) {
     db.close();
-    return null;
+    throw { code: 400, message: `User with the username ${username} already exists!` };
   }
 };
 
@@ -51,20 +50,20 @@ const insertUser = async (username) => {
  * Retrieves the user with the provided id from the database
  * 
  * @param {Number} userId - The user's id
- * @return {Object|null} The user object, or null if no
- * records were found with the provided id
+ * @return {Object} The user object
  */
 const getUserById = async (userId) => {
   const db = await getDb();
 
-  try {
-    const user = await db.get(queries.GET_USER_BY_ID_QUERY, userId);
-    db.close();
-    return user;
-  } catch (error) {
-    db.close();
-    return null;
+  const user = await db.get(queries.GET_USER_BY_ID_QUERY, userId);
+
+  if (!user) {
+    throw { code: 404, message: 'The user with the provided id does not exist!' };
   }
+
+  db.close();
+  return user;
+  
 };
 
 /**
@@ -79,10 +78,9 @@ const getUserById = async (userId) => {
 const insertExercise = async (userId, description, duration, date) => {
   const db = await getDb();
 
-  const user = await getUserById(userId);
-
-  if (user) {
     try {
+      const user = await getUserById(userId);
+
       const result = await db.run(queries.INSERT_EXERCISE_QUERY, [description, duration, date, userId]);
       db.close();
       if (result.lastID) {
@@ -98,10 +96,6 @@ const insertExercise = async (userId, description, duration, date) => {
       db.close();
       throw error;
     }
-  } else {
-    db.close();
-    throw { error: 'The user with the provided id does not exist!' };
-  }
 };
 
 /**
@@ -111,18 +105,13 @@ const insertExercise = async (userId, description, duration, date) => {
  * @return {Object} User object with logs array containing their exercises
  */
 const getUserLogs = async (userId, ...params) => {
-  const user = await getUserById(userId);
-
-  if (user) {
-    try {
-      const logs = await getExercisesForUser(userId, ...params);
-      const count = await getExerciseCountForUser(userId, ...params);
-      return { _id: userId, username: user.username, logs, count };
-    } catch (error) {
-      throw error;
-    }
-  } else {
-    throw { error: 'The user with the provided id does not exist!' };
+  try {
+    const user = await getUserById(userId);
+    const logs = await getExercisesForUser(userId, ...params);
+    const count = await getExerciseCountForUser(userId, ...params);
+    return { _id: userId, username: user.username, logs, count };
+  } catch (error) {
+    throw error;
   }
 };
 
